@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="edu.bit.ex.mapper.MemberMapper">
+
+	<resultMap id="memberMap" type="edu.bit.ex.vo.MemberVO">
+	    <result property="username" column="username"/> <!-- MemberVO에 만든 변수이름이 아니라 내부적으로 setUsername을 뜻한다. 넣어서 다시 VO에 넣어준다. / db상에 있는 실제 이름 -->
+	    <result property="password" column="password"/>
+	    <result property="enabled" column="enabled"/>
+		<collection property="authList" resultMap="authMap"></collection> <!-- authList를 뜻함. / autoMap은 autoVO를 말함. -->
+	</resultMap>
+	
+	<resultMap id="authMap" type="edu.bit.ex.vo.AuthVO">
+		<result property="username" column="username"/>
+		<result property="authority" column="authority"/>
+	</resultMap>
+	
+	<select id="getMember" resultMap="memberMap"> <!-- sql 구문(1:N) -->
+		select * from users , authorities 
+		where users.username = authorities.username and users.username = #{username}
+	</select>
+	
+
+</mapper>

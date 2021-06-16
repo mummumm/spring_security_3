@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<http>
+		<intercept-url pattern="/login/loginForm" access="permitAll" />
+        <intercept-url pattern="/" access="permitAll" />
+        <intercept-url pattern="/user/**" access="permitAll" />
+        <intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />
+		<intercept-url pattern="/**" access="hasAnyRole('USER, ADMIN')" />	 
+		
+		<!-- 이건 디폴트! 기본 로그인 페이지 그래서 이걸 자기걸로 커스터마이징 하겠다는 것! -->
+		<!-- 로그인 페이지 커스텀 화 -->
+		<!-- <form-login/> -->
+  		<form-login login-page="/login/loginForm"
+              default-target-url="/"
+              authentication-failure-url="/login/loginForm?error"
+              username-parameter="username"
+              password-parameter="pw" />
+
+  		<logout logout-url="/logout" logout-success-url="/" /> 
+
+		<!-- 403 에러 처리 -->
+  		<access-denied-handler error-page="/login/accessDenied"/>		
+	</http> 
+	
+	<beans:bean id="customNoOpPasswordEncoder" class="edu.bit.ex.security.CustomNoOpPasswordEncoder"/> <!-- 이거 없으면 에러남 -->
+	<beans:bean id="bcryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+	
+	<!--
+	 role-prefix=""
+	 users-by-username-query="select username, password, enabled from users where username = ?"
+	 authorities-by-username-query="select username, authority from authorities where username = ?"
+	-->
+	
+	<!-- provider --> 
+	<authentication-manager>	
+	  <authentication-provider>
+	    <password-encoder ref="customNoOpPasswordEncoder"/> <!-- customNoOpPasswordEncoder는 암호화된 비번 그대로 bcryptPasswordEncoder는 암호화된 비번 복호화해서 -->
+ 		<jdbc-user-service 
+			data-source-ref="dataSource"
+			users-by-username-query="select ename, empno, 1 from emp where ename = ?"			
+            authorities-by-username-query="select ename, case when job='MANAGER' then 'ROLE_ADMIN' else 'ROLE_USER' end from emp where ename = ?"           
+		/>
+	  </authentication-provider>	  		
+	</authentication-manager>
+
+</beans:beans>
